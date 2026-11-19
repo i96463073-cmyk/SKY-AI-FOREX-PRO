@@ -1,0 +1,31 @@
+SKY AI FOREX PRO — Cloudflare Pages Admin Dashboard
+
+FILES
+- index.html
+- style.css
+- config.js
+- app.js
+- firestore.rules
+
+1) Upload/replace these five files in the GitHub repository root (same folder as index.html).
+2) Open config.js and replace the Firebase placeholder values with the Firebase WEB app configuration:
+   Firebase Console > Project settings > General > Your apps > SKY AI FOREX PRO ADMIN > SDK setup and configuration > Config.
+   Do not paste a service-account JSON or private key here.
+3) Commit changes. Cloudflare Pages should redeploy automatically.
+4) In Firebase Console > Firestore Database > Rules, publish the contents of firestore.rules.
+5) In Firebase Console > Authentication > Users, make sure your admin email account exists.
+6) Copy that user's UID. In Firestore Data, create a collection named "admins", then a document whose document ID is exactly that UID. Add field:
+   active (boolean) = true
+   This approval must be created by you in the Firebase Console. Do not let users create their own admin records.
+7) Sign in to the Pages website using that Firebase email/password.
+
+EXPECTED FIRESTORE COLLECTIONS
+- users: optional fields displayName, name, email, status
+- devices: optional fields deviceName, deviceModel, platform, userId, status
+- activity: optional fields event, action, type, userId, createdAt (Firestore timestamp)
+
+Important:
+- This starter dashboard is read-only. It does not yet suspend users, change device permissions, or edit settings.
+- It only shows documents that exist in Firestore. It does not secretly collect device information.
+- The Worker currently exposes a public health endpoint only. Keep admin operations disabled until authenticated server-side endpoints and authorization are added.
+- Firebase web config is client configuration, not a service-account key. Never upload a Firebase service-account private key to GitHub or put it in browser code.
