@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "638582998955",
+    "project_id": "sky-ai-forex-pro",
+    "storage_bucket": "sky-ai-forex-pro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638582998955:android:d43a09da0660cd0e3074ee",
+        "android_client_info": {
+          "package_name": "com.skyai.forexpro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZHZw-fLghE1GQ00kizfbRH4gn8Y1dPX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
