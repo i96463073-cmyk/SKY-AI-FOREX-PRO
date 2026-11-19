@@ -1,5 +1,5 @@
 
-name: Build SKY AI FOREX PRO APK
+name: Build SKY AI FOREX PRO - Standalone APK
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -20,26 +20,28 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
+      - name: Install packages
+        run: npm install
+
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive
 
-      - name: Build APK
+      - name: Build standalone APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
-      - name: Upload APK
+      - name: Upload standalone APK
         uses: actions/upload-artifact@v4
         with:
-          name: SKY-AI-FOREX-PRO-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: SKY-AI-FOREX-PRO-STANDALONE
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
