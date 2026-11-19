@@ -1,0 +1,8 @@
+node_modules
+.git
+.github
+.wrangler
+*.log
+README.md
+SECURITY.md
+SETUP.txt
