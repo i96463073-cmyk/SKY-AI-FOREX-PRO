@@ -1,11 +1,10 @@
-name = "sky-ai-forex-pro-api"
+name = "sky-ai-forex-pro" 
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 
 [vars]
 APP_NAME = "SKY AI FOREX PRO"
 
-# THIS IS THE MISSING PIECE
 [assets]
 directory = "./"
 not_found_handling = "single-page-application"
