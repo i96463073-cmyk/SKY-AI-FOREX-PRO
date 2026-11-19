@@ -1,0 +1,6 @@
+name = "sky-ai-forex-pro-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+APP_NAME = "SKY AI FOREX PRO"

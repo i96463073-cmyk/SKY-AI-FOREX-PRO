@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKY AI FOREX PRO — Control Center</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div><small>MARKET INTELLIGENCE PLATFORM</small><h1>SKY AI <span>FOREX PRO</span></h1></div><b class="status">STARTER DASHBOARD</b></header>
+<main>
+<section class="hero"><p>CONTROL CENTER</p><h2>Welcome back.</h2><span>Monitor API health and prepare your market-analysis workspace.</span></section>
+<section class="grid">
+<article><small>API STATUS</small><h3 id="apiStatus">Not checked</h3><p id="apiMessage">Set your Worker URL in config.js.</p></article>
+<article><small>MARKET FEED</small><h3>Not connected</h3><p>Live prices require a market-data provider.</p></article>
+<article><small>REGISTERED DEVICES</small><h3>Not configured</h3><p>Device enrollment is not enabled in this starter.</p></article>
+</section>
+<section class="panel"><h2>API connection test</h2><p>Enter your deployed Cloudflare Worker base URL. This page only checks the public health endpoint.</p>
+<div class="form"><input id="workerUrl" placeholder="https://your-worker.workers.dev"><button id="testBtn">Test connection</button></div>
+<pre id="result">Waiting for test…</pre></section>
+<section class="panel"><h2>Security</h2><p>Keep admin credentials in server-side secrets. Never paste an admin token into this public webpage. Use authenticated sessions before enabling administrative actions.</p></section>
+</main><script src="config.js"></script><script src="app.js"></script>
+</body></html>

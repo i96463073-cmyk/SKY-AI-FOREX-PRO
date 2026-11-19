@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "SKY AI FOREX PRO",
+    "slug": "sky-ai-forex-pro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.skyai.forexpro",
+      "versionCode": 1
+    },
+    "extra": {
+      "apiBaseUrl": "https://YOUR-WORKER.your-subdomain.workers.dev"
+    }
+  }
+}
