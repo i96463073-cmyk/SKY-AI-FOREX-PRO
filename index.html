@@ -3,66 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#080d18">
-  <title>SKY AI FOREX PRO — Admin Control Center</title>
+  <title>SKY AI FOREX PRO — Controller</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <div class="ambient"></div>
-  <header class="topbar">
-    <a class="brand" href="#"><span class="brand-mark">S</span><span>SKY AI <b>FOREX PRO</b><small>ADMIN CONTROL CENTER</small></span></a>
-    <div class="top-actions"><span id="connection" class="connection"><i></i> Checking API</span><button id="logoutBtn" class="btn btn-quiet hidden">Sign out</button></div>
-  </header>
+  <main class="shell">
+    <header class="topbar">
+      <div><div class="eyebrow">CONTROL CENTER</div><h1>SKY AI <span>FOREX PRO</span></h1></div>
+      <div id="apiStatus" class="status">Checking API…</div>
+    </header>
 
-  <main>
-    <section id="loginView" class="login-wrap">
-      <div class="login-card">
-        <div class="eyebrow">SECURE ADMIN ACCESS</div>
-        <h1>Welcome back.</h1>
-        <p class="muted">Sign in with the administrator account you created in Firebase Authentication.</p>
-        <form id="loginForm">
-          <label for="email">Admin email</label>
-          <input id="email" type="email" autocomplete="username" placeholder="admin@example.com" required>
-          <label for="password">Password</label>
-          <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
-          <button class="btn btn-primary full" type="submit">Sign in securely</button>
-          <p id="loginMessage" class="message" aria-live="polite"></p>
-        </form>
-      </div>
-      <p class="login-foot">Access is restricted to accounts explicitly approved in Firestore.</p>
+    <section id="loginCard" class="panel login">
+      <h2>Administrator login</h2>
+      <p>Sign in with the Firebase email account approved by the project owner.</p>
+      <form id="loginForm">
+        <label>Email<input id="email" type="email" autocomplete="username" required></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Sign in</button>
+      </form>
+      <p id="loginMessage" class="message" role="status"></p>
     </section>
 
-    <section id="dashboardView" class="hidden">
-      <div class="welcome-row">
-        <div><div class="eyebrow">CONTROL CENTER</div><h1>Platform overview</h1><p class="muted">Your operational snapshot for SKY AI FOREX PRO.</p></div>
-        <div class="admin-chip"><span class="online-dot"></span><span id="adminEmail">Administrator</span></div>
+    <section id="dashboard" hidden>
+      <div class="welcome"><div><div class="eyebrow">ADMINISTRATION</div><h2>Controller overview</h2><p id="signedInAs"></p></div><button id="logoutButton" class="secondary">Sign out</button></div>
+      <div class="metrics">
+        <article class="metric"><span>Users</span><strong id="usersCount">—</strong></article>
+        <article class="metric"><span>Devices</span><strong id="devicesCount">—</strong></article>
+        <article class="metric"><span>Activity records</span><strong id="activityCount">—</strong></article>
       </div>
-      <div id="notice" class="notice hidden" role="status"></div>
-      <div class="stats-grid">
-        <article class="stat-card"><span class="stat-label">REGISTERED USERS</span><strong id="usersCount">—</strong><small>Documents in users collection</small></article>
-        <article class="stat-card"><span class="stat-label">REGISTERED DEVICES</span><strong id="devicesCount">—</strong><small>Opt-in device registrations</small></article>
-        <article class="stat-card"><span class="stat-label">ACTIVITY EVENTS</span><strong id="activityCount">—</strong><small>Recent activity records</small></article>
-        <article class="stat-card"><span class="stat-label">API STATUS</span><strong id="apiStatus" class="status-text">Checking</strong><small id="apiDetail">Cloudflare Worker health</small></article>
-      </div>
-
-      <div class="content-grid">
-        <section class="panel">
-          <div class="panel-head"><div><div class="eyebrow">ACCOUNT DIRECTORY</div><h2>Registered users</h2></div><button id="refreshBtn" class="btn btn-outline">Refresh</button></div>
-          <div class="table-wrap"><table><thead><tr><th>USER</th><th>EMAIL</th><th>STATUS</th></tr></thead><tbody id="usersRows"><tr><td colspan="3" class="empty">No data loaded yet.</td></tr></tbody></table></div>
-        </section>
-        <section class="panel">
-          <div class="panel-head"><div><div class="eyebrow">DEVICE DIRECTORY</div><h2>Registered devices</h2></div></div>
-          <div class="table-wrap"><table><thead><tr><th>DEVICE</th><th>USER ID</th><th>STATUS</th></tr></thead><tbody id="devicesRows"><tr><td colspan="3" class="empty">No data loaded yet.</td></tr></tbody></table></div>
-        </section>
-        <section class="panel panel-wide">
-          <div class="panel-head"><div><div class="eyebrow">AUDIT TRAIL</div><h2>Recent activity</h2></div></div>
-          <div class="table-wrap"><table><thead><tr><th>EVENT</th><th>USER ID</th><th>TIME</th></tr></thead><tbody id="activityRows"><tr><td colspan="3" class="empty">No data loaded yet.</td></tr></tbody></table></div>
-        </section>
-      </div>
-      <footer class="dashboard-footer">SKY AI FOREX PRO · Admin access is protected by Firebase Authentication and Firestore Security Rules.</footer>
+      <section class="panel"><div class="sectionHead"><h3>Users</h3><button data-refresh>Refresh</button></div><div class="tableWrap"><table><thead><tr><th>User ID</th><th>Email</th><th>Status</th></tr></thead><tbody id="usersRows"><tr><td colspan="3">No records loaded.</td></tr></tbody></table></div></section>
+      <section class="panel"><div class="sectionHead"><h3>Registered devices</h3></div><div class="tableWrap"><table><thead><tr><th>Device ID</th><th>Owner UID</th><th>Platform</th></tr></thead><tbody id="devicesRows"><tr><td colspan="3">No records loaded.</td></tr></tbody></table></div></section>
+      <section class="panel"><div class="sectionHead"><h3>Recent activity</h3></div><div class="tableWrap"><table><thead><tr><th>Activity</th><th>User ID</th><th>Time</th></tr></thead><tbody id="activityRows"><tr><td colspan="3">No records loaded.</td></tr></tbody></table></div></section>
+      <p id="dashboardMessage" class="message" role="status"></p>
     </section>
+    <footer>SKY AI FOREX PRO · Secure administrator access</footer>
   </main>
-  <script src="config.js"></script>
-  <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -4,34 +4,28 @@ service cloud.firestore {
     function signedIn() {
       return request.auth != null;
     }
-    function isActiveAdmin() {
+    function approvedAdmin() {
       return signedIn()
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
     }
 
-    // Each admin may read only their own approval record.
-    // No client may create or modify admin approvals.
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
       allow write: if false;
     }
-
-    // Admin dashboard is read-only for now.
     match /users/{document=**} {
-      allow read: if isActiveAdmin();
+      allow read: if approvedAdmin();
       allow write: if false;
     }
     match /devices/{document=**} {
-      allow read: if isActiveAdmin();
+      allow read: if approvedAdmin();
       allow write: if false;
     }
     match /activity/{document=**} {
-      allow read: if isActiveAdmin();
+      allow read: if approvedAdmin();
       allow write: if false;
     }
-
-    // Deny all other access until specific application rules are designed.
     match /{document=**} {
       allow read, write: if false;
     }

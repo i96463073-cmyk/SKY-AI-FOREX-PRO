@@ -1,163 +1,93 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, collection, getDocs, query, orderBy, limit
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+(() => {
+  const cfg = window.SKY_CONFIG || {};
+  const $ = id => document.getElementById(id);
+  const safe = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const message = (id, text) => { $(id).textContent = text || ""; };
 
-const cfg = window.SKY_CONFIG;
-const $ = (id) => document.getElementById(id);
-const loginView = $("loginView");
-const dashboardView = $("dashboardView");
-const loginMessage = $("loginMessage");
-const notice = $("notice");
-
-function showNotice(message, error = false) {
-  notice.textContent = message;
-  notice.classList.remove("hidden", "error");
-  if (error) notice.classList.add("error");
-}
-function hideNotice() { notice.classList.add("hidden"); }
-
-function configIsReady() {
-  const f = cfg?.firebase;
-  return f && f.apiKey && !f.apiKey.startsWith("PASTE_") &&
-    f.projectId && f.appId && !f.appId.startsWith("PASTE_");
-}
-
-if (!configIsReady()) {
-  loginMessage.textContent = "Setup required: add your Firebase Web app configuration in config.js, then reload this page.";
-  loginMessage.className = "message error";
-  $("connection").innerHTML = "<i></i> Setup required";
-} else {
-  const app = initializeApp(cfg.firebase);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  async function checkWorker() {
+  async function checkApi() {
     try {
-      const response = await fetch(`${cfg.workerUrl.replace(/\/$/, "")}/api/health`);
-      if (!response.ok) throw new Error("Health check failed");
+      const response = await fetch((cfg.workerUrl || "").replace(/\/$/, "") + "/api/health");
+      if (!response.ok) throw new Error("HTTP " + response.status);
       const data = await response.json();
-      $("connection").innerHTML = "<i></i> API online";
-      $("apiStatus").textContent = "Online";
-      $("apiStatus").className = "status-text good";
-      $("apiDetail").textContent = data.app || data.application || "Cloudflare Worker";
-    } catch {
-      $("connection").innerHTML = "<i class='bad-dot'></i> API unavailable";
-      $("apiStatus").textContent = "Offline";
-      $("apiStatus").className = "status-text bad";
-      $("apiDetail").textContent = "Check Worker URL and deployment";
-    }
+      $("apiStatus").textContent = data.ok ? "API online" : "API responded";
+    } catch (e) { $("apiStatus").textContent = "API unavailable"; }
+  }
+  checkApi();
+
+  const fb = cfg.firebase || {};
+  const missing = Object.values(fb).some(v => !v || String(v).startsWith("PASTE_"));
+  if (missing || !window.firebase) {
+    message("loginMessage", "Add your Firebase Web app configuration in config.js before signing in.");
+    return;
   }
 
-  async function isApprovedAdmin(user) {
-    // Admin approval is controlled manually in Firestore. A normal signed-in
-    // Firebase user is NOT automatically an administrator.
-    const adminSnap = await getDoc(doc(db, "admins", user.uid));
-    return adminSnap.exists() && adminSnap.data().active === true;
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(fb);
+  } catch (e) {
+    message("loginMessage", "Firebase setup error: " + e.message);
+    return;
   }
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-  function safeText(value) {
-    return String(value ?? "—").replace(/[&<>"']/g, c => ({
-      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-    }[c]));
-  }
-  function timeText(value) {
-    if (!value) return "—";
-    const date = value.toDate ? value.toDate() : new Date(value);
-    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
-  }
-  function row(cells) {
-    return `<tr>${cells.map(v => `<td>${v}</td>`).join("")}</tr>`;
-  }
-  function setRows(id, html, emptyText) {
-    $(id).innerHTML = html || `<tr><td colspan="3" class="empty">${emptyText}</td></tr>`;
-  }
-
-  async function loadCollection(name, max = 50, sortField = null) {
-    const ref = collection(db, name);
-    const q = sortField ? query(ref, orderBy(sortField, "desc"), limit(max)) : query(ref, limit(max));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  async function loadRows(collection, target, fields, limit = 50) {
+    const snap = await db.collection(collection).limit(limit).get();
+    $(target).innerHTML = snap.empty
+      ? `<tr><td colspan="${fields.length}">No records yet.</td></tr>`
+      : snap.docs.map(doc => {
+          const d = doc.data();
+          return `<tr>${fields.map(field => `<td>${safe(field === "__id" ? doc.id : d[field])}</td>`).join("")}</tr>`;
+        }).join("");
+    return snap.size;
   }
 
   async function loadDashboard() {
-    hideNotice();
+    message("dashboardMessage", "Loading records…");
     try {
-      const [users, devices, activities] = await Promise.all([
-        loadCollection("users", 100),
-        loadCollection("devices", 100),
-        loadCollection("activity", 20, "createdAt")
+      const [users, devices, activity] = await Promise.all([
+        loadRows("users", "usersRows", ["__id","email","status"]),
+        loadRows("devices", "devicesRows", ["__id","userId","platform"]),
+        loadRows("activity", "activityRows", ["type","userId","createdAt"])
       ]);
-      $("usersCount").textContent = users.length;
-      $("devicesCount").textContent = devices.length;
-      $("activityCount").textContent = activities.length;
-
-      setRows("usersRows", users.map(u => row([
-        safeText(u.displayName || u.name || u.id.slice(0, 12)),
-        safeText(u.email),
-        `<span class="pill">${safeText(u.status || "registered")}</span>`
-      ])).join(""), "No registered users found.");
-
-      setRows("devicesRows", devices.map(d => row([
-        safeText(d.deviceName || d.deviceModel || d.platform || d.id),
-        safeText(d.userId),
-        `<span class="pill">${safeText(d.status || "registered")}</span>`
-      ])).join(""), "No registered devices found.");
-
-      setRows("activityRows", activities.map(a => row([
-        safeText(a.event || a.action || a.type || "Activity"),
-        safeText(a.userId),
-        safeText(timeText(a.createdAt))
-      ])).join(""), "No activity records found.");
-    } catch (error) {
-      showNotice("Could not load dashboard data. Check Firestore collections and Security Rules. " + error.message, true);
+      $("usersCount").textContent = users;
+      $("devicesCount").textContent = devices;
+      $("activityCount").textContent = activity;
+      message("dashboardMessage", "Read-only overview loaded.");
+    } catch (e) {
+      message("dashboardMessage", "Could not load records. Check Firestore rules and collection names: " + e.message);
     }
   }
 
-  $("loginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    loginMessage.textContent = "Signing in…";
-    loginMessage.className = "message";
-    try {
-      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
-    } catch (error) {
-      loginMessage.textContent = error.message;
-      loginMessage.className = "message error";
-    }
-  });
-
-  $("logoutBtn").addEventListener("click", () => signOut(auth));
-  $("refreshBtn").addEventListener("click", loadDashboard);
-
-  onAuthStateChanged(auth, async (user) => {
+  auth.onAuthStateChanged(async user => {
     if (!user) {
-      loginView.classList.remove("hidden");
-      dashboardView.classList.add("hidden");
-      $("logoutBtn").classList.add("hidden");
+      $("loginCard").hidden = false;
+      $("dashboard").hidden = true;
       return;
     }
     try {
-      if (!(await isApprovedAdmin(user))) {
-        await signOut(auth);
-        loginMessage.textContent = "This account has not been approved as an administrator. Ask the project owner to authorize its UID in Firestore.";
-        loginMessage.className = "message error";
+      const approval = await db.collection("admins").doc(user.uid).get();
+      if (!approval.exists || approval.data().active !== true) {
+        await auth.signOut();
+        message("loginMessage", "This account is not approved as an administrator.");
         return;
       }
-      loginView.classList.add("hidden");
-      dashboardView.classList.remove("hidden");
-      $("logoutBtn").classList.remove("hidden");
-      $("adminEmail").textContent = user.email || "Administrator";
-      await checkWorker();
+      $("loginCard").hidden = true;
+      $("dashboard").hidden = false;
+      $("signedInAs").textContent = "Signed in as " + user.email;
       await loadDashboard();
-    } catch (error) {
-      await signOut(auth);
-      loginMessage.textContent = "Admin verification failed: " + error.message;
-      loginMessage.className = "message error";
+    } catch (e) {
+      await auth.signOut();
+      message("loginMessage", "Admin verification failed: " + e.message);
     }
   });
 
-  checkWorker();
-}
+  $("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    message("loginMessage", "Signing in…");
+    try {
+      await auth.signInWithEmailAndPassword($("email").value.trim(), $("password").value);
+    } catch (e) { message("loginMessage", e.message); }
+  });
+  $("logoutButton").addEventListener("click", () => auth.signOut());
+  document.querySelectorAll("[data-refresh]").forEach(button => button.addEventListener("click", loadDashboard));
+})();

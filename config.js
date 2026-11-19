@@ -1,5 +1,5 @@
-// Replace the placeholder values with the Firebase WEB app config from
-// Firebase Console > Project settings > Your apps > Web app.
+// Firebase web configuration is public client configuration, not an admin secret.
+// Replace every PASTE_... value with the values from Firebase Console > Project settings > Your apps.
 window.SKY_CONFIG = {
   workerUrl: "https://sky-ai-forex-pro.i96463073.workers.dev",
   firebase: {

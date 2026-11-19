@@ -1,31 +1,16 @@
-SKY AI FOREX PRO — Cloudflare Pages Admin Dashboard
+SKY AI FOREX PRO — ADMIN PANEL SETUP
 
-FILES
-- index.html
-- style.css
-- config.js
-- app.js
-- firestore.rules
+1. Extract this ZIP on your phone.
+2. Upload index.html, style.css, config.js and app.js to the root of the GitHub repository connected to your Cloudflare Pages project. Replace files with the same names.
+3. Open Firebase Console > Project settings > General > Your apps. Select your Firebase Web app, choose the Config option, and copy the real values into config.js. Do not paste a service-account private key here.
+4. In Firebase Authentication, enable Email/Password and create your admin login account.
+5. In Firestore, create collection "admins". Create a document whose document ID is exactly the admin user's Firebase Authentication UID. Add boolean field active = true.
+6. Publish firestore.rules only after reviewing the warning below.
+7. Wait for Cloudflare Pages to redeploy, then open your Pages website.
 
-1) Upload/replace these five files in the GitHub repository root (same folder as index.html).
-2) Open config.js and replace the Firebase placeholder values with the Firebase WEB app configuration:
-   Firebase Console > Project settings > General > Your apps > SKY AI FOREX PRO ADMIN > SDK setup and configuration > Config.
-   Do not paste a service-account JSON or private key here.
-3) Commit changes. Cloudflare Pages should redeploy automatically.
-4) In Firebase Console > Firestore Database > Rules, publish the contents of firestore.rules.
-5) In Firebase Console > Authentication > Users, make sure your admin email account exists.
-6) Copy that user's UID. In Firestore Data, create a collection named "admins", then a document whose document ID is exactly that UID. Add field:
-   active (boolean) = true
-   This approval must be created by you in the Firebase Console. Do not let users create their own admin records.
-7) Sign in to the Pages website using that Firebase email/password.
+IMPORTANT FIRESTORE RULES WARNING
+These sample rules are intentionally read-only. They allow approved admins to read users, devices and activity, and deny all client writes and all other collections. Publishing them as a full replacement can break an app that needs to write to Firestore or uses other collections. If your Android app already writes data, do not replace its current rules yet; combine the permissions carefully.
 
-EXPECTED FIRESTORE COLLECTIONS
-- users: optional fields displayName, name, email, status
-- devices: optional fields deviceName, deviceModel, platform, userId, status
-- activity: optional fields event, action, type, userId, createdAt (Firestore timestamp)
+The admin panel does not create users/devices/activity records. Those collections must be written by your app or backend. Collection fields shown are examples: users email/status; devices userId/platform; activity type/userId/createdAt.
 
-Important:
-- This starter dashboard is read-only. It does not yet suspend users, change device permissions, or edit settings.
-- It only shows documents that exist in Firestore. It does not secretly collect device information.
-- The Worker currently exposes a public health endpoint only. Keep admin operations disabled until authenticated server-side endpoints and authorization are added.
-- Firebase web config is client configuration, not a service-account key. Never upload a Firebase service-account private key to GitHub or put it in browser code.
+Firebase Web config is client-side configuration. Never put Firebase service-account JSON, private keys, broker passwords, or API secrets in these files.
