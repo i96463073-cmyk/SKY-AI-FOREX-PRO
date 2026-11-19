@@ -1,2 +1,4 @@
-// Optional default Worker URL. This is public configuration, not a secret.
-window.SKY_CONFIG = { workerUrl: "" };
+
+window.SKY_CONFIG = {
+  workerUrl: "https://sky-ai-forex-pro.i96463073.workers.dev"
+};
